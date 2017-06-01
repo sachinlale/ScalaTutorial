@@ -19,7 +19,7 @@ import repo.EmployeeRepository
 class EmployeeController extends Controller {
   
   import Constants._
-  lazy val empRepository: EmployeeRepository = new EmployeeRepository /// TODO: Use Object 
+//  lazy val empRepository: EmployeeRepository = EmployeeRepository /// TODO: Use Object 
   
   val logger = Logger(this.getClass())
 
@@ -27,7 +27,7 @@ class EmployeeController extends Controller {
     * Handles request for getting all employee from the database
     */
   def list() = Action.async {
-    empRepository.getAll().map { res =>
+    EmployeeRepository.getAll().map { res =>
       logger.info("Emp list: " + res)
       Ok(successResponse(Json.toJson(res), "Employee retrieved successfully"))
     }
@@ -40,7 +40,7 @@ class EmployeeController extends Controller {
     logger.info("Employee Json ===> " + request.body)
     request.body.validate[Employee].fold(error => Future.successful(BadRequest(JsError.toJson(error))), { emp =>
       
-      empRepository.insert(emp).map { createdEmpId =>
+      EmployeeRepository.insert(emp).map { createdEmpId =>
         Ok(successResponse(Json.toJson(Map("id" -> createdEmpId)), "Employee created successfully"))
       }
     })
@@ -50,7 +50,7 @@ class EmployeeController extends Controller {
     * Handles request for deletion of existing employee by employee_id
     */
   def delete(empId: Int) = Action.async { request =>
-    empRepository.delete(empId).map { _ =>
+    EmployeeRepository.delete(empId).map { _ =>
       Ok(successResponse(Json.toJson("{}"), "Employee deleted successfully"))
     }
   }
@@ -59,7 +59,7 @@ class EmployeeController extends Controller {
     * Handles request for get employee details for editing
     */
   def edit(empId: Int): Action[AnyContent] = Action.async { request =>
-    empRepository.getById(empId).map { empOpt =>
+    EmployeeRepository.getById(empId).map { empOpt =>
       empOpt.fold(Ok(errorResponse(Json.toJson("{}"), "Employee does not exists.")))(emp => Ok(
         successResponse(Json.toJson(emp), "Employee retrieved successfully")))
     }
@@ -75,7 +75,7 @@ class EmployeeController extends Controller {
   def update = Action.async(parse.json) { request =>
     logger.info("Employee Json ===> " + request.body)
     request.body.validate[Employee].fold(error => Future.successful(BadRequest(JsError.toJson(error))), { emp =>
-      empRepository.update(emp).map { res => Ok(successResponse(Json.toJson("{}"), "Employee updated successfully")) }
+      EmployeeRepository.update(emp).map { res => Ok(successResponse(Json.toJson("{}"), "Employee updated successfully")) }
     })
   }
 

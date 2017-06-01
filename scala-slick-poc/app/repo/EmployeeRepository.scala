@@ -9,7 +9,7 @@ import play.api.db.slick.HasDatabaseConfig
 import slick.profile.RelationalProfile
 import play.api.Play
 
-class EmployeeRepository extends HasDatabaseConfig[JdbcProfile] {
+object EmployeeRepository extends HasDatabaseConfig[JdbcProfile] {
   
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
   
