@@ -22,7 +22,7 @@ $(document).ready(function() {
                                   return '<i id=" ' + data +' " class="edit-button glyphicon glyphicon-edit cursorPointer" ></i>';
                                 }
                             },
-                     { data: "id" ,
+                     { data: "employee.id" ,
                         "render": function ( data ) {
                                    return '<i id=" ' + data +' " class="remove-button glyphicon glyphicon-trash cursorPointer"></i>';
                                }
@@ -59,6 +59,8 @@ $(document).ready(function() {
 	loadDeptDropDown();
 	
 	function loadDeptDropDown() {
+		$("#deptSelect").empty();
+		$("#editDeptSelect").empty();
 		$.ajax({
          url: "/dept/list",
          type: "GET",
@@ -68,6 +70,7 @@ $(document).ready(function() {
              console.log(deptList);
              $.each(deptList, function(index) {
 				$("#deptSelect").append("<option value='" + deptList[index].id + "'>" + deptList[index].name + "</option>");
+				$("#editDeptSelect").append("<option value='" + deptList[index].id + "'>" + deptList[index].name + "</option>");
 			});   
              
 			} else {
@@ -83,12 +86,11 @@ $(document).ready(function() {
     $("body").on( 'click', '.remove-button', function () {
         var currentRow = $(this);
         var employeeId = $(this).attr('id').trim();
-         bootbox.confirm("Are you sure?", function(result) {
+         bootbox.confirm("Are you sure?"+employeeId, function(result) {
             if(result) {
                     $.ajax({
-                     url: "/emp/delete",
-                     type: "GET",
-                     data: {empId: employeeId},
+                     url: "/emp?empId="+employeeId,
+                     type: "DELETE",
                      success:function(response){
                                if(response.status == SUCCESS) {
                                   showSuccessAlert(response.msg);
@@ -112,14 +114,19 @@ $(document).ready(function() {
      $("body").on( 'click', '.edit-button', function () {
             var employeeId = $(this).attr('id').trim();
              $.ajax({
-                   url: "/emp/edit",
+                   url: "/emp",
                    type: "GET",
                    data: {empId: employeeId},
                    success:function(response){
                              $('#empEditModal').modal('show');
                              $.each(response.data, function(key, value){
-                                $('#empEditForm input[name="'+key+'"]').val(value);
+                             	if(key=='departmentId') {
+                             		$("#editDeptSelect").val(value)
+                             	} else {
+                                	$('#empEditForm input[name="'+key+'"]').val(value);
+                                }
                              });
+                             
                       },
                    error: function(){
                              showErrorAlert(serverErrorMessage);
@@ -172,7 +179,7 @@ $('#empModal').on('shown.bs.modal', function () {
          var empTable = $('#empDataTable').dataTable();
           e.preventDefault();
            $.ajax({
-                url: "/emp/create",
+                url: "/emp",
                 type: "POST",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
@@ -201,8 +208,8 @@ $('#empModal').on('shown.bs.modal', function () {
        var formData = $("#empEditForm").serializeObject();
         e.preventDefault();
          $.ajax({
-              url: "/emp/update",
-              type: "POST",
+              url: "/emp",
+              type: "PUT",
               contentType: "application/json; charset=utf-8",
               dataType: "json",
               data: formData,
@@ -232,9 +239,8 @@ $('#empModal').on('shown.bs.modal', function () {
          bootbox.confirm("Are you sure?", function(result) {
             if(result) {
                     $.ajax({
-                     url: "/dept/delete",
-                     type: "GET",
-                     data: {deptId: departmentId},
+                     url: "/dept?deptId="+departmentId,
+                     type: "DELETE",
                      success:function(response){
                                if(response.status == SUCCESS) {
                                   showSuccessAlert(response.msg);
@@ -243,8 +249,12 @@ $('#empModal').on('shown.bs.modal', function () {
                                   showErrorAlert(serverErrorMessage);
                               }
                         },
-                     error: function(){
-                          showErrorAlert(serverErrorMessage);
+                     error: function(xhr, data, thrownError){
+                			if(xhr.status==400) {
+                				showErrorAlert(xhr.responseJSON.msg)
+                			} else {
+	                          	showErrorAlert(serverErrorMessage);
+	                          }	
                        }
                   });
             } else {
@@ -256,7 +266,7 @@ $('#empModal').on('shown.bs.modal', function () {
 	$("body").on( 'click', '.dept-edit-button', function () {
 	    var departmentId = $(this).attr('id').trim();
 	     $.ajax({
-	           url: "/dept/edit",
+	           url: "/dept",
 	           type: "GET",
 	           data: {deptId: departmentId},
 	           success:function(response){
@@ -282,7 +292,7 @@ $('#empModal').on('shown.bs.modal', function () {
          var deptTable = $('#deptDataTable').dataTable();
           e.preventDefault();
            $.ajax({
-                url: "/dept/create",
+                url: "/dept",
                 type: "POST",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
@@ -313,8 +323,8 @@ $('#empModal').on('shown.bs.modal', function () {
 		var formData = $("#deptEditForm").serializeObject();
 	    e.preventDefault();
 	     $.ajax({
-	          url: "/dept/update",
-	          type: "POST",
+	          url: "/dept",
+	          type: "PUT",
 	          contentType: "application/json; charset=utf-8",
 	          dataType: "json",
 	          data: formData,
@@ -323,6 +333,7 @@ $('#empModal').on('shown.bs.modal', function () {
 	                   $('#deptEditModal').modal('hide');
 	                   $('#empDataTable').DataTable().ajax.reload();
 	                   $('#deptDataTable').DataTable().ajax.reload();
+	                   loadDeptDropDown();
 	                   showSuccessAlert(response.msg)
 	             } else {
 	                $('#empEditModal').modal('hide');

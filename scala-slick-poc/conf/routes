@@ -4,24 +4,24 @@ GET     /                                   controllers.Application.index
 # Employee APIs
 GET     /emp/list                           controllers.EmployeeController.list
 
-POST    /emp/create                        controllers.EmployeeController.create
+POST    /emp                        controllers.EmployeeController.create
 
-GET     /emp/edit                           controllers.EmployeeController.edit(empId: Int)
+GET     /emp                           controllers.EmployeeController.get(empId: Int)
 
-POST    /emp/update                        controllers.EmployeeController.update
+PUT    /emp                        controllers.EmployeeController.update
 
-GET     /emp/delete                         controllers.EmployeeController.delete(empId: Int)
+DELETE     /emp                         controllers.EmployeeController.delete(empId: Int)
 
 # Department APIs
 GET     /dept/list                           controllers.DepartmentController.list
 
-POST    /dept/create                        controllers.DepartmentController.create
+POST    /dept                        controllers.DepartmentController.create
 
-GET     /dept/edit                           controllers.DepartmentController.edit(deptId: Int)
+GET     /dept                           controllers.DepartmentController.get(deptId: Int)
 
-POST    /dept/update                        controllers.DepartmentController.update
+PUT    /dept                        controllers.DepartmentController.update
 
-GET     /dept/delete                         controllers.DepartmentController.delete(deptId: Int)
+DELETE     /dept                         controllers.DepartmentController.delete(deptId: Int)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                       controllers.Assets.versioned(path="/public", file: Asset)

@@ -58,7 +58,7 @@ class EmployeeController extends Controller {
   /**
     * Handles request for get employee details for editing
     */
-  def edit(empId: Int): Action[AnyContent] = Action.async { request =>
+  def get(empId: Int): Action[AnyContent] = Action.async { request =>
     EmployeeRepository.getById(empId).map { empOpt =>
       empOpt.fold(Ok(errorResponse(Json.toJson("{}"), "Employee does not exists.")))(emp => Ok(
         successResponse(Json.toJson(emp), "Employee retrieved successfully")))
