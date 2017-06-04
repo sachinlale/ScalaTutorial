@@ -18,9 +18,10 @@ object DepartmentRepository extends HasDatabaseConfig[JdbcProfile] {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   private val deptTableQuery = TableQuery[DepartmentTable]
+  private val deptTableQueryInc = deptTableQuery returning deptTableQuery.map(_.id)
   
   def insert(dept: Department): Future[Int] = db.run {
-    deptTableQuery += dept
+    deptTableQueryInc += dept
   }
   
 
