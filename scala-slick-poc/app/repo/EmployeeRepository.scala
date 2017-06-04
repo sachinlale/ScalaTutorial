@@ -50,9 +50,12 @@ object EmployeeRepository extends HasDatabaseConfig[JdbcProfile] {
     empWithDeptTableQuery.to[List].result.map(_.map(EmployeeWithDepartment.tupled))
   }
 
-  def getById(empId: Int): Future[Option[EmployeeWithDepartment]] = db.run {
-    //empTableQuery.filter(_.id === empId).result.headOption
-    empWithDeptTableQuery.filter(_._1.id === empId).result.headOption.map(_.map(EmployeeWithDepartment.tupled))
+  def getById(empId: Int): Future[Option[Employee]] = db.run {
+    empTableQuery.filter(_.id === empId).result.headOption
+    /**
+     * Trying eager department fetch with Id
+     * empWithDeptTableQuery.filter(_._1.id === empId).result.headOption.map(_.map(EmployeeWithDepartment.tupled))
+     */
   }
 
 

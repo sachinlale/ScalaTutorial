@@ -4,6 +4,8 @@ var ERROR = 'error';
 
 var serverErrorMessage = 'Oops, something wrong :(';
 
+var deptList = {};
+
 $(document).ready(function() {
     $('#empDataTable').DataTable( {
         "ajax": {
@@ -15,7 +17,7 @@ $(document).ready(function() {
                     { "data": "employee.email" },
                     { "data": "employee.position" },
                     { "data": "department.name" },
-                    { data: "id" ,
+                    { data: "employee.id" ,
                      "render": function ( data) {
                                   return '<i id=" ' + data +' " class="edit-button glyphicon glyphicon-edit cursorPointer" ></i>';
                                 }
@@ -31,6 +33,52 @@ $(document).ready(function() {
 
     var tableEmp = $('#empDataTable').DataTable();
 
+
+    $('#deptDataTable').DataTable( {
+        "ajax": {
+            "url": "/dept/list",
+            "dataType": "json"
+        },
+         "columns": [
+                    { "data": "name" },
+                    { data: "id" ,
+                     "render": function ( data) {
+                                  return '<i id=" ' + data +' " class="dept-edit-button glyphicon glyphicon-edit cursorPointer" ></i>';
+                                }
+                            },
+                     { data: "id" ,
+                        "render": function ( data ) {
+                                   return '<i id=" ' + data +' " class="dept-remove-button glyphicon glyphicon-trash cursorPointer"></i>';
+                               }
+                     }
+
+                ]
+    } );
+
+    var tableDept = $('#deptDataTable').DataTable();
+	loadDeptDropDown();
+	
+	function loadDeptDropDown() {
+		$.ajax({
+         url: "/dept/list",
+         type: "GET",
+         success:function(response) {
+         	if(response.status == SUCCESS) {            	
+             deptList = response.data;
+             console.log(deptList);
+             $.each(deptList, function(index) {
+				$("#deptSelect").append("<option value='" + deptList[index].id + "'>" + deptList[index].name + "</option>");
+			});   
+             
+			} else {
+            	showErrorAlert(serverErrorMessage);
+            }
+		 },
+         error: function(){
+             showErrorAlert(serverErrorMessage);
+         }
+      });
+	}
     // Delete employee event
     $("body").on( 'click', '.remove-button', function () {
         var currentRow = $(this);
@@ -84,36 +132,39 @@ $('#empModal').on('shown.bs.modal', function () {
   $('#empForm').trigger("reset");
 });
 
-// Show success alert message
-var showSuccessAlert = function (message) {
-   	$.toaster({ priority : 'success', title : 'Success', message : message});
-}
 
-// Show error alert message
-var showErrorAlert = function (message) {
-    $.toaster({ priority : 'danger', title : 'Error', message : message});
-}
 
-// Convert form data in JSON format
-$.fn.serializeObject = function() {
-           var o = {};
-           var a = this.serializeArray();
-           $.each(a, function() {
-                    if (o[this.name] !== undefined) {
-                        if (!o[this.name].push) {
-                            o[this.name] = [o[this.name]];
-                        }
-                        o[this.name].push(this.value || '');
-                    } else {
-                          if(this.name == 'id') {
-                             o[this.name] = parseInt(this.value) || 0;
-                          } else {
-                         o[this.name] = this.value || '';
-                         }
-                    }
-               });
-            return JSON.stringify(o);
-        };
+
+	// Show success alert message
+	var showSuccessAlert = function (message) {
+	   	$.toaster({ priority : 'success', title : 'Success', message : message});
+	}
+	
+	// Show error alert message
+	var showErrorAlert = function (message) {
+	    $.toaster({ priority : 'danger', title : 'Error', message : message});
+	}
+
+	// Convert form data in JSON format
+	$.fn.serializeObject = function() {
+	           var o = {};
+	           var a = this.serializeArray();
+	           $.each(a, function() {
+	                    if (o[this.name] !== undefined) {
+	                        if (!o[this.name].push) {
+	                            o[this.name] = [o[this.name]];
+	                        }
+	                        o[this.name].push(this.value || '');
+	                    } else {
+	                          if(this.name == 'id' || this.name == 'departmentId') {
+	                             o[this.name] = parseInt(this.value) || 0;
+	                          } else {
+	                         	o[this.name] = this.value || '';
+	                         }
+	                    }
+	               });
+	            return JSON.stringify(o);
+    };
 
 // Handling form submission for create new employee
       $('#empForm').on('submit', function(e){
@@ -129,9 +180,7 @@ $.fn.serializeObject = function() {
                 success:function(response){
                    if(response.status == "success") {
                          $('#empModal').modal('hide');
-                         var newEmp = jQuery.parseJSON(formData);
-                         newEmp['id'] = response.data['id'];
-                         empTable.fnAddData([newEmp]);
+                         $('#empDataTable').DataTable().ajax.reload();
                          showSuccessAlert(response.msg);
                    } else {
                         $('#empModal').modal('hide');
@@ -147,33 +196,150 @@ $.fn.serializeObject = function() {
             return false;
       });
 
-// Handling form submission for update employee
-$('#empEditForm').on('submit', function(e){
-               var formData = $("#empEditForm").serializeObject();
-                e.preventDefault();
-                 $.ajax({
-                      url: "/emp/update",
-                      type: "POST",
-                      contentType: "application/json; charset=utf-8",
-                      dataType: "json",
-                      data: formData,
-                      success:function(response){
-                         if(response.status == SUCCESS) {
-                               $('#empEditModal').modal('hide');
-                               $('#empDataTable').DataTable().ajax.reload();
-                               showSuccessAlert(response.msg)
-                         } else {
-                            $('#empEditModal').modal('hide');
-                            showErrorAlert(response.msg);
-                         }
-                      },
-                      error: function(){
-                          $('#empEditModal').modal('hide');
-                          showErrorAlert(serverErrorMessage);
-                      }
+	// Handling form submission for update employee
+	$('#empEditForm').on('submit', function(e){
+       var formData = $("#empEditForm").serializeObject();
+        e.preventDefault();
+         $.ajax({
+              url: "/emp/update",
+              type: "POST",
+              contentType: "application/json; charset=utf-8",
+              dataType: "json",
+              data: formData,
+              success:function(response){
+                 if(response.status == SUCCESS) {
+                       $('#empEditModal').modal('hide');
+                       $('#empDataTable').DataTable().ajax.reload();
+                       showSuccessAlert(response.msg)
+                 } else {
+                    $('#empEditModal').modal('hide');
+                    showErrorAlert(response.msg);
+                 }
+              },
+              error: function(){
+                  $('#empEditModal').modal('hide');
+                  showErrorAlert(serverErrorMessage);
+              }
 
+          });
+          return false;
+    });
+            
+//DEPARTMENT
+	$("body").on( 'click', '.dept-remove-button', function () {
+        var currentRow = $(this);
+        var departmentId = $(this).attr('id').trim();
+         bootbox.confirm("Are you sure?", function(result) {
+            if(result) {
+                    $.ajax({
+                     url: "/dept/delete",
+                     type: "GET",
+                     data: {deptId: departmentId},
+                     success:function(response){
+                               if(response.status == SUCCESS) {
+                                  showSuccessAlert(response.msg);
+                                  tableDept.row(currentRow.parents('tr') ).remove().draw();
+                              } else {
+                                  showErrorAlert(serverErrorMessage);
+                              }
+                        },
+                     error: function(){
+                          showErrorAlert(serverErrorMessage);
+                       }
                   });
-                  return false;
+            } else {
+               //
+              }
+         });
+    });
+     
+	$("body").on( 'click', '.dept-edit-button', function () {
+	    var departmentId = $(this).attr('id').trim();
+	     $.ajax({
+	           url: "/dept/edit",
+	           type: "GET",
+	           data: {deptId: departmentId},
+	           success:function(response){
+	                     $('#deptEditModal').modal('show');
+	                     $.each(response.data, function(key, value){
+	                        $('#deptEditForm input[name="'+key+'"]').val(value);
+	                     });
+	              },
+	           error: function(){
+	                     showErrorAlert(serverErrorMessage);
+	             }
+	     });
+    });
+
+
+	$('#deptModal').on('shown.bs.modal', function () {
+	  $('#deptForm').trigger("reset");
+	});
+
+
+	$('#deptForm').on('submit', function(e){
+         var formData = $("#deptForm").serializeObject();
+         var deptTable = $('#deptDataTable').dataTable();
+          e.preventDefault();
+           $.ajax({
+                url: "/dept/create",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: formData,
+                success:function(response){
+                   if(response.status == "success") {
+                         $('#deptModal').modal('hide');
+                         var newDept = jQuery.parseJSON(formData);
+                         newDept['id'] = response.data['id'];
+                         deptTable.fnAddData([newDept]);
+                         showSuccessAlert(response.msg);
+                   } else {
+                        $('#deptModal').modal('hide');
+                        showErrorAlert(response.msg);
+                   }
+                },
+                error: function(){
+                    $('#deptModal').modal('hide');
+                    showErrorAlert(serverErrorMessage);
+                }
+
             });
+            return false;
+	});
+
+
+	$('#deptEditForm').on('submit', function(e) {
+		var formData = $("#deptEditForm").serializeObject();
+	    e.preventDefault();
+	     $.ajax({
+	          url: "/dept/update",
+	          type: "POST",
+	          contentType: "application/json; charset=utf-8",
+	          dataType: "json",
+	          data: formData,
+	          success:function(response){
+	             if(response.status == SUCCESS) {
+	                   $('#deptEditModal').modal('hide');
+	                   $('#empDataTable').DataTable().ajax.reload();
+	                   $('#deptDataTable').DataTable().ajax.reload();
+	                   showSuccessAlert(response.msg)
+	             } else {
+	                $('#empEditModal').modal('hide');
+	                showErrorAlert(response.msg);
+	             }
+	          },
+	          error: function(){
+	              $('#deptEditModal').modal('hide');
+	              showErrorAlert(serverErrorMessage);
+	          }
+	
+	      });
+	      return false;
+	});
+
+	
 
 });
+
+

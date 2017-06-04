@@ -1,6 +1,7 @@
 # --- !Ups
-CREATE TABLE "employee"("id" Int AUTO_INCREMENT PRIMARY KEY ,"name" varchar(200) , "email" varchar(200)  ,"department_id" Int, "position" varchar);
 CREATE TABLE "department"("id" Int AUTO_INCREMENT PRIMARY KEY ,"name" varchar(200));
+CREATE TABLE "employee"("id" Int AUTO_INCREMENT PRIMARY KEY ,"name" varchar(200) , "email" varchar(200)  ,"department_id" Int, "position" varchar, 
+	FOREIGN KEY ("department_id") REFERENCES "department"("id"));
 INSERT INTO "department" values (1,'Sales');
 INSERT INTO "department" values (2,'Admin');
 INSERT INTO "department" values (3,'Engineering');
