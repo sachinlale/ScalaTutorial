@@ -11,10 +11,10 @@ $(document).ready(function() {
             "dataType": "json"
         },
          "columns": [
-                    { "data": "name" },
-                    { "data": "email" },
-                    { "data": "position" },
-                    { "data": "department" },
+                    { "data": "employee.name" },
+                    { "data": "employee.email" },
+                    { "data": "employee.position" },
+                    { "data": "department.name" },
                     { data: "id" ,
                      "render": function ( data) {
                                   return '<i id=" ' + data +' " class="edit-button glyphicon glyphicon-edit cursorPointer" ></i>';

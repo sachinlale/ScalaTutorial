@@ -12,14 +12,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.play"   %%   "play-slick"              %   "2.0.0",
   "com.typesafe.play"   %%   "play-slick-evolutions"   %   "2.0.0",
   "com.h2database"    % 	   "h2"                    %   "1.4.187" ,
-  "mysql"   %      "mysql-connector-java" % "5.1.12",
   specs2 % Test
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
-
-
-routesGenerator := InjectedRoutesGenerator
-
-
-fork in run := true
